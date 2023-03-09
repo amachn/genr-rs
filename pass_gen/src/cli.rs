@@ -28,9 +28,10 @@ impl Cli {
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.no_upper && self.no_lower && self.no_num && !self.symbols {
             Err("ERROR: Cannot disable all possible characters!")
+        } else if self.length < 4 || self.length > 64 {
+            Err("ERROR: Possible lengths range from 4-64 only!")
         } else { 
             Ok(()) 
-        } 
-        
+        }         
     }
 }
