@@ -1,3 +1,5 @@
+use std::fmt;
+
 use crate::cli::Cli;
 
 #[derive(Debug)]
@@ -8,6 +10,12 @@ pub struct Generator {
     pub num: bool,
     pub sym: bool,
     pub generated: String,
+}
+
+impl fmt::Display for Generator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.generated)
+    }
 }
 
 impl Generator {
@@ -32,6 +40,6 @@ impl Generator {
     }
 
     pub fn make(&mut self) -> () {
-        println!("{:?}", self);
+        
     }
 }
