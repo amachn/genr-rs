@@ -23,3 +23,14 @@ pub struct Cli {
     #[arg(short, long, default_value_t = false, action = ArgAction::SetTrue)]
     pub symbols: bool,
 }
+
+impl Cli {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.no_upper && self.no_lower && self.no_num && !self.symbols {
+            Err("ERROR: Cannot disable all possible characters!")
+        } else { 
+            Ok(()) 
+        } 
+        
+    }
+}
