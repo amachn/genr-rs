@@ -1,28 +1,17 @@
-mod cli;
 mod generator;
 
-use clap::Parser;
+use regex::Regex;
 
-use std::{io, process};
+use std::{env, io, process};
 
-use cli::Cli;
 use generator::Generator;
 
 fn main() {
-    // parse CLI arguments
-    let args = Cli::parse();
+    // enable dev backtraces
+    env::set_var("RUST_BACKTRACE", "1");
 
-    // validate that the passed arguments meet the requirements outlined in Cli::validate
-    match args.validate() {
-        Ok(_) => (),
-        Err(error) => {
-            println!("{}", error);
-            process::exit(1);
-        },
-    };
-
-    // create a new generator instance with the validated arguments
-    let mut generator = Generator::new(args);
+    // create a new generator (it handles CLI argument collection and validation)
+    let mut generator = Generator::new();
 
     // process loop that allows multiple generations
     loop {
@@ -38,17 +27,27 @@ fn main() {
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
 
-            // validate that it is an option
+            // validate the input
             match input.as_str().to_lowercase().trim() {
-                "uppercase" | "upper" | "u" => generator.upper = !generator.upper,
-                "lowercase" | "lower" | "l" => generator.lower = !generator.lower,
-                "numbers" | "num" | "n" => generator.num = !generator.num,
-                "symbols" | "sym" |"s" => generator.sym = !generator.sym,
-                "make" | "run" | "get" | "new" => break,
-                "e" | "ex" | "exit" | "q" | "quit" | "close" => process::exit(0),
-                other @ _ => {
-                    // here we will use regex to determine if it is a length argument or invalid
-                    println!("that's not an option! try again bozo: ")
+                "uppercase" | "upper" | "u" => generator.upper = !generator.upper, // flip uppers
+                "lowercase" | "lower" | "l" => generator.lower = !generator.lower, // flip lowers
+                "numbers" | "num" | "n" => generator.num = !generator.num, // flip numbers
+                "symbols" | "sym" |"s" => generator.sym = !generator.sym, // flip symbols
+                "make" | "run" | "get" | "new" => break, // make a new password
+                "e" | "ex" | "exit" | "q" | "quit" | "close" => process::exit(0), // quit program
+                other @ _ => { // check if it is a length argument, or get a new input
+                    // regex explained (it's pretty bad but whatever):
+                    // ^ -- this must be the start of the string w/ nothing else before
+                    // (?:l|len|length) -- matches either l, len, or length 
+                    // [ \\t]* -- matches infinitely many spaces or tabs
+                    // \\d{1,3} -- matches at least 1 but no more than 3 digits
+                    // $ -- this must be the end of the string w/ nothing else after
+                    let re = Regex::new("^(?:l|len|length)[ \\t]*\\d{1,3}$").unwrap();
+                    if let Some(len) = re.captures(other) {
+                        // process the new password length here
+                    } else {
+                        println!("that's not an option! try again bozo: ");
+                    }
                 },
             };
         }
