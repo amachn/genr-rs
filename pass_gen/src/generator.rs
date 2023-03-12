@@ -1,6 +1,6 @@
 use clap::{ArgAction, Parser};
 
-use std::{fmt, process};
+use std::{fmt, process::exit};
 
 /// A basic password generator written in Rust.
 #[derive(Debug, Parser)]
@@ -48,7 +48,7 @@ impl Generator {
             },
             Err(error) => {
                 println!("{}", error);
-                process::exit(1)
+                exit(1)
             },
         }
     }
