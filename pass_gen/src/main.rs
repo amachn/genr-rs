@@ -2,7 +2,15 @@ mod generator;
 
 use regex::Regex;
 
-use std::{env, io, process::exit};
+use std::{
+    env,
+    io::{
+        Write, 
+        stdin,
+        stdout
+    }, 
+    process::exit,
+};
 
 use generator::Generator;
 
@@ -19,14 +27,15 @@ fn main() -> () {
         generator.make();
 
         println!("{:?}", generator); // NOTE: debugging purposes only
-        println!("generated: {}", generator);
-        println!("now what?"); // TODO: convert to a print! and io::stdout().flush().unwrap() setup
+        println!("generated: {}\n", generator);
+        print!("input an operation: ");
+        stdout().flush().unwrap();
 
         // prompt for new input, ensure it is a valid option
         loop {
             // read in input from stdin
             let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
+            stdin().read_line(&mut input).unwrap();
 
             // TODO: allow multiple arguments
 
@@ -59,12 +68,14 @@ fn main() -> () {
                             },
                         };
                     } else {
-                        println!("that's not an option! try again bozo: ");
+                        print!("that's not an option! try again bozo: ");
+                        stdout().flush().unwrap();
                         continue;
                     }
                 },
             };
             break;
         }
+        println!();
     }
 }
