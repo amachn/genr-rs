@@ -38,8 +38,6 @@ fn main() -> () {
             stdin().read_line(&mut input).unwrap();
 
             // TODO: allow multiple arguments
-
-            // TODO: optimize, currently exits on length errors but retries on invalid options
             
             // validate the input
             match input.as_str().to_lowercase().trim() {
@@ -54,19 +52,12 @@ fn main() -> () {
                     // ^ -- this must be the start of the string w/ nothing else before
                     // (?:l|len|length) -- matches either l, len, or length, but doesn't capture
                     // [ \\t]* -- matches infinitely many spaces or tabs
-                    // (\\d{1,3}) -- matches and captures at least 1 but no more than 3 digits
+                    // ([4-9]|[1-5][0-9]|6[0-4]) -- matches and captures digits from 4-64
                     // $ -- this must be the end of the string w/ nothing else after
-                    let re = Regex::new("^(?:l|len|length)[ \\t]*(\\d{1,3})$").unwrap();
+                    let re = Regex::new("^(?:l|len|length)[ \\t]*([4-9]|[1-5][0-9]|6[0-4])$").unwrap();
                     if let Some(len) = re.captures(other) {
                         // idx 0 is the full match, idx 1 will be the requested length
                         generator.length = len.get(1).unwrap().as_str().parse::<u8>().unwrap();
-                        match generator.validate() {
-                            Ok(_) => (),
-                            Err(error) => {
-                                println!("{}", error);
-                                exit(1);
-                            },
-                        };
                     } else {
                         print!("that's not an option! try again bozo: ");
                         stdout().flush().unwrap();
