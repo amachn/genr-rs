@@ -36,7 +36,7 @@ impl Generator {
             lower: true, 
             num: true, 
             sym: false, 
-            generated: String::new() 
+            generated: String::new() ,
         }
     }
 

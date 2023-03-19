@@ -77,7 +77,7 @@ fn main() -> () {
                     },
                     Err(e) => println!("{e:?}"),
                 }
-            }
+            },
             Ok(x) if [3, 4, 5, 6].contains(&x) => { // flip the boolean and verify
                 let flip = |num: usize, generator: &mut Generator| -> () {
                     match num {
@@ -85,7 +85,7 @@ fn main() -> () {
                         4 => generator.lower = !generator.lower,
                         5 => generator.num = !generator.num,
                         6 => generator.sym = !generator.sym,
-                        _ => unreachable!()
+                        _ => unreachable!(),
                     };
                 };
 
@@ -96,14 +96,14 @@ fn main() -> () {
                     Err(e) => {
                         flip(x, &mut generator);
                         println!("{}", e);
-                    }
+                    },
                 }
             },
             Ok(7) => {
                 // TODO: organize a help menu that describes what can and cannot be done
-            }
+            },
             Ok(_) => println!("ERROR: Invalid input! Try again..."),
             Err(e) => println!("{e:?}"),
-        }
+        };
     }
 }
