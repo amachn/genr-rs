@@ -47,9 +47,10 @@ fn main() -> () {
     // enable dev backtraces
     env::set_var("RUST_BACKTRACE", "1"); // TODO: remove when out of dev
 
-    // create our generator instance
+    // create a new, mutable generator instance
     let mut generator = Generator::new();
 
+    // main process loop
     loop {
         print_opts(&generator);
         match fetch_input() {
