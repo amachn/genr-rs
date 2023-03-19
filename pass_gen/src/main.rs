@@ -5,7 +5,7 @@ use std::{
     io::{
         Write, 
         stdin,
-        stdout
+        stdout,
     }, 
 };
 
