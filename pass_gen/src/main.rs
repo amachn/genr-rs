@@ -1,7 +1,5 @@
 mod generator;
 
-use regex::Regex;
-
 use std::{
     env,
     io::{
@@ -9,64 +7,103 @@ use std::{
         stdin,
         stdout
     }, 
-    process::exit,
 };
 
 use generator::Generator;
 
+fn print_opts(gen: &Generator) -> () {
+    let &Generator { length, upper, lower, num, sym, .. } = gen;
+    print!(
+        "
+Options:
+    1) Generate a new password.
+    2) Set a new length. [ currently: {length} ]
+    3) Toggle uppercase letters. [ currently: {upper} ]
+    4) Toggle lowercase letters. [ currently: {lower} ]
+    5) Toggle numbers [ currently: {num} ]
+    6) Toggle symbols [ currently: {sym} ]
+    7) Print a help menu.
+    0) Exit.
+Select One: "
+    );
+    match stdout().flush() {
+        Ok(_) => {},
+        Err(e) => panic!("Write error: {e:?}"),
+    };
+}
+
+fn fetch_input() -> Result<usize, &'static str> {
+    let mut buf = String::new();
+    match stdin().read_line(&mut buf) {
+        Ok(_) => {},
+        Err(e) => eprintln!("Error reading the input: {e:?}"),
+    };
+    buf.trim()
+        .parse::<usize>()
+        .map_err(|_| "ERROR: Input must be a number greater than zero! Try again...")
+}
+
 fn main() -> () {
     // enable dev backtraces
-    env::set_var("RUST_BACKTRACE", "1"); // NOTE: debugging purposes only
+    env::set_var("RUST_BACKTRACE", "1"); // TODO: remove when out of dev
 
-    // create a new generator (it handles CLI argument collection and validation)
+    // create our generator instance
     let mut generator = Generator::new();
 
-    // process loop that allows multiple generations
     loop {
-        // generate a password and store it in generator.generated, which is accessible via Display
-        generator.make();
+        print_opts(&generator);
+        match fetch_input() {
+            Ok(0) => return, // exit the program :)
+            Ok(1) => {
+                // TODO: generate a password and output it (offer a copy to clipboard?)
+            },
+            Ok(2) => {
+                // collect the new length
+                print!("New Length: ");
+                match stdout().flush() {
+                    Ok(_) => {},
+                    Err(e) => panic!("Write error: {e:?}"),
+                };
+                let new = fetch_input();
 
-        println!("{:?}", generator); // NOTE: debugging purposes only
-        println!("generated: {}\n", generator);
-        print!("input an operation: ");
-        stdout().flush().unwrap();
+                // validate: if too small or big, deny change. otherwise, make the change.
+                match new {
+                    Ok(x) if x < 8 || x > 64 => { // too small/big
+                        println!("ERROR: Possible lengths range from 8-64 only!");
+                    },
+                    Ok(x) => { // good length
+                        // this won't raise problems as x must be between 8 and 64, u8 is 0-255
+                        generator.length = x as u8;
+                    },
+                    Err(e) => println!("{e:?}"),
+                }
+            }
+            Ok(x) if [3, 4, 5, 6].contains(&x) => { // flip the boolean and verify
+                let flip = |num: usize, generator: &mut Generator| -> () {
+                    match num {
+                        3 => generator.upper = !generator.upper,
+                        4 => generator.lower = !generator.lower,
+                        5 => generator.num = !generator.num,
+                        6 => generator.sym = !generator.sym,
+                        _ => unreachable!()
+                    };
+                };
 
-        // prompt for new input, ensure it is a valid option
-        loop {
-            // read in input from stdin
-            let mut input = String::new();
-            stdin().read_line(&mut input).unwrap();
+                flip(x, &mut generator);
 
-            // TODO: allow multiple arguments
-            
-            // validate the input
-            match input.as_str().to_lowercase().trim() {
-                "uppercase" | "upper" | "u" => generator.upper = !generator.upper, // flip uppers
-                "lowercase" | "lower" | "l" => generator.lower = !generator.lower, // flip lowers
-                "numbers" | "num" | "n" => generator.num = !generator.num, // flip numbers
-                "symbols" | "sym" |"s" => generator.sym = !generator.sym, // flip symbols
-                "make" | "run" | "get" | "new" => (), // make a new password
-                "e" | "ex" | "exit" | "q" | "quit" | "close" => exit(0), // quit program
-                other @ _ => { // check if it is a length argument, or get a new input
-                    // regex explained (it's pretty bad but whatever):
-                    // ^ -- this must be the start of the string w/ nothing else before
-                    // (?:l|len|length) -- matches either l, len, or length, but doesn't capture
-                    // [ \\t]* -- matches infinitely many spaces or tabs
-                    // ([4-9]|[1-5][0-9]|6[0-4]) -- matches and captures digits from 4-64
-                    // $ -- this must be the end of the string w/ nothing else after
-                    let re = Regex::new("^(?:l|len|length)[ \\t]*([4-9]|[1-5][0-9]|6[0-4])$").unwrap();
-                    if let Some(len) = re.captures(other) {
-                        // idx 0 is the full match, idx 1 will be the requested length
-                        generator.length = len.get(1).unwrap().as_str().parse::<u8>().unwrap();
-                    } else {
-                        print!("that's not an option! try again bozo: ");
-                        stdout().flush().unwrap();
-                        continue;
+                match generator.validate() {
+                    Ok(_) => {},
+                    Err(e) => {
+                        flip(x, &mut generator);
+                        println!("{}", e);
                     }
-                },
-            };
-            break;
+                }
+            },
+            Ok(7) => {
+                // TODO: organize a help menu that describes what can and cannot be done
+            }
+            Ok(_) => println!("ERROR: Invalid input! Try again..."),
+            Err(e) => println!("{e:?}"),
         }
-        println!();
     }
 }
