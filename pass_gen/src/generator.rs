@@ -43,13 +43,4 @@ impl Generator {
     pub fn make(&mut self) -> () {
         // TODO: actually generate the password lol
     }
-
-    pub fn validate(&self) -> Result<(), &'static str> {
-        let charsets: [bool; 4] = [self.upper, self.lower, self.num, self.sym];
-        if charsets.iter().all(|&x| x == false) { // if all charsets are off
-            Err("ERROR: Cannot disable all possible charsets!")
-        } else { // otherwise, arguments are valid
-            Ok(())
-        }
-    }
 }

@@ -92,12 +92,10 @@ fn main() -> () {
 
                 flip(x, &mut generator);
 
-                match generator.validate() {
-                    Ok(_) => {},
-                    Err(e) => {
-                        flip(x, &mut generator);
-                        println!("{}", e);
-                    },
+                let charsets: [bool; 4] = [generator.upper, generator.lower, generator.num, generator.sym];
+                if charsets.iter().all(|&x| x == false) {
+                    flip(x, &mut generator);
+                    println!("ERROR: Cannot disable all possible charsets!");
                 }
             },
             Ok(7) => {
