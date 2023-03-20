@@ -13,8 +13,7 @@ use generator::Generator;
 
 fn print_opts(gen: &Generator) -> () {
     let &Generator { length, upper, lower, num, sym, .. } = gen;
-    print!(
-        "
+    print!("
 Options:
     1) Generate a new password.
     2) Set a new length. [ currently: {length} ]
@@ -99,7 +98,18 @@ fn main() -> () {
                 }
             },
             Ok(7) => {
-                // TODO: organize a help menu that describes what can and cannot be done
+                print!("
+This program runs in an infinite loop unless given an exit command.
+There are two primary rules:
+    1) At least one charset must be enabled (uppercase, lowercase, numbers, symbols).
+    2) The length of the password must be greater than or equal to 8, but no greater than 64.
+This project uses the rand crate's ThreadRNG to generate passwords.
+"
+                );
+                match stdout().flush() {
+                    Ok(_) => {},
+                    Err(e) => panic!("Write error: {e:?}"),
+                };
             },
             Ok(_) => println!("ERROR: Invalid input! Try again..."),
             Err(e) => println!("{e:?}"),
