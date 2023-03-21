@@ -56,7 +56,7 @@ impl Generator {
             chars: Vec::with_capacity(77),
             // we use capacity 77 because: lower (26) + upper (26) + num (10) + sym (15) = 77
             rng: StdRng::from_seed(seed), // create an StdRng based on the seed we've generated
-            range: Uniform::new(0, 0), // temporary values until self.update() is called
+            range: Uniform::new(0, 1), // temporary values until self.update() is called
         }
     }
 
