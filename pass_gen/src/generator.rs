@@ -1,4 +1,13 @@
-use std::fmt;
+use rand::{
+    distributions::Uniform,
+    prelude::{
+        Rng,
+        RngCore,
+        SeedableRng,
+        StdRng,
+        thread_rng,
+    },
+};
 
 // A basic password generator written in Rust.
 #[derive(Debug)]
@@ -18,29 +27,80 @@ pub struct Generator {
     // Enable symbols.
     pub sym: bool,
 
-    // Stores the generated password.
-    pub generated: String,
-}
+    // Indicates if the charsets have been modified.
+    pub updated: bool,
 
-impl fmt::Display for Generator { // TODO: remove when out of dev
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.generated)
-    }
+    // The current charset (only created/updated on Generator::make()).
+    pub chars: Vec<char>,
+
+    // The PRNG (cryptographically secure) used to generate the passwords.
+    pub rng: StdRng,
+
+    // Sample range for the PRNG.
+    pub range: Uniform<usize>, 
 }
 
 impl Generator {
     pub fn new() -> Generator {
+        // generate a random seed to be used with StdRng
+        let mut seed = [0u8; 32];
+        thread_rng().fill_bytes(&mut seed);
+
         Generator { 
             length: 8, 
             upper: true,
             lower: true, 
             num: true, 
             sym: false, 
-            generated: String::new() ,
+            updated: true,
+            chars: Vec::with_capacity(77),
+            // we use capacity 77 because: lower (26) + upper (26) + num (10) + sym (15) = 77
+            rng: StdRng::from_seed(seed), // create an StdRng based on the seed we've generated
+            range: Uniform::new(0, 0), // temporary values until self.update() is called
         }
     }
 
-    pub fn make(&mut self) -> () {
-        // TODO: actually generate the password lol
+    pub fn make(&mut self) -> String {
+        if self.updated { self.update(); } // updates chars
+
+        // generate the password
+        let mut pass = String::new();
+        for _ in 0..self.length {
+            pass.push(self.chars[self.rng.sample(self.range)]);
+        }
+
+        pass
+    }
+
+    fn update(&mut self) -> () {
+        if !self.chars.is_empty() { self.chars = Vec::with_capacity(77); } // reset charsets
+        
+        if self.upper {
+            for c in 'A' as u8 ..= 'Z' as u8 {
+                self.chars.push(c as char);
+            }
+        }
+
+        if self.lower {
+            for c in 'a' as u8 ..= 'z' as u8 {
+                self.chars.push(c as char);
+            }
+        }
+
+        if self.num {
+            for c in '0' as u8 ..= '9' as u8 {
+                self.chars.push(c as char);
+            }
+        }
+
+        if self.sym {
+            self.chars.append(&mut vec![
+                '!', '@', '#', '$', '%', '&', '*', '+', '-', '[', ']', '(', ')', '{', '}',
+            ]);
+        }
+
+        // reset updated status and create proper range
+        self.updated = false;
+        self.range = Uniform::new(0, self.chars.len());
     }
 }
