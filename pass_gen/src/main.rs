@@ -55,7 +55,9 @@ fn main() -> () {
         match fetch_input() {
             Ok(0) => return, // exit the program :)
             Ok(1) => {
-                // TODO: generate a password and output it (offer a copy to clipboard?)
+                // TODO: offer a copy to the clipboard
+                let pass = generator.make();
+                println!("Generated: {}", pass);
             },
             Ok(2) => {
                 // collect the new length
@@ -74,6 +76,7 @@ fn main() -> () {
                     Ok(x) => { // good length
                         // this won't raise problems as x must be between 8 and 64, u8 is 0-255
                         generator.length = x as u8;
+                        generator.updated = true;
                     },
                     Err(e) => println!("{e:?}"),
                 }
@@ -95,6 +98,8 @@ fn main() -> () {
                 if charsets.iter().all(|&x| x == false) {
                     flip(x, &mut generator);
                     println!("ERROR: Cannot disable all possible charsets!");
+                } else {
+                    generator.updated = true;
                 }
             },
             Ok(7) => {
@@ -103,7 +108,7 @@ This program runs in an infinite loop unless given an exit command.
 There are two primary rules:
     1) At least one charset must be enabled (uppercase, lowercase, numbers, symbols).
     2) The length of the password must be greater than or equal to 8, but no greater than 64.
-This project uses the rand crate's ThreadRNG to generate passwords.
+This project uses the rand crate's cryptographically secure StdRng to generate passwords.
 "
                 );
                 match stdout().flush() {
