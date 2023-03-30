@@ -1,5 +1,5 @@
 [package]
-name = "pass_gen"
+name = "genr-rs"
 version = "1.0.0"
 edition = "2021"
 

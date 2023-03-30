@@ -1,2 +1,2 @@
-# rust-projects
-projects written in rust for funsies
+# genr-rs
+a simple, yet cryptographically secure CLI password generator written in Rust.
