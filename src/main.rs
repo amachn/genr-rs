@@ -3,16 +3,19 @@ mod generator;
 use std::{
     env,
     io::{
+        Stdin,
+        Stdout,
         Write, 
         stdin,
         stdout,
-    }, 
+    },
 };
 
 use generator::Generator;
 
-fn print_opts(gen: &Generator) -> () {
+fn print_opts(gen: &Generator, outhnd: &mut Stdout) -> () {
     let &Generator { length, upper, lower, num, sym, .. } = gen;
+
     print!("
 Options:
     1) Generate a new password.
@@ -25,21 +28,35 @@ Options:
     0) Exit.
 Select One: "
     );
-    match stdout().flush() {
+
+    match outhnd.flush() {
         Ok(_) => {},
         Err(e) => panic!("Write error: {e:?}"),
     };
 }
 
-fn fetch_input() -> Result<usize, &'static str> {
+fn fetch_usize_input(inhnd: &Stdin) -> Result<usize, &'static str> {
     let mut buf = String::new();
-    match stdin().read_line(&mut buf) {
+
+    match inhnd.read_line(&mut buf) {
         Ok(_) => {},
         Err(e) => eprintln!("Error reading the input: {e:?}"),
     };
+
     buf.trim()
         .parse::<usize>()
         .map_err(|_| "ERROR: Input must be a number greater than zero! Try again...")
+}
+
+fn fetch_str_input(inhnd: &Stdin) -> String {
+    let mut buf = String::new();
+
+    match inhnd.read_line(&mut buf) {
+        Ok(_) => {},
+        Err(e) => eprintln!("Error reading the input: {e:?}"),
+    };
+
+    buf.trim().to_owned()
 }
 
 fn main() -> () {
@@ -49,10 +66,14 @@ fn main() -> () {
     // create a new, mutable generator instance
     let mut generator = Generator::new();
 
+    // i/o handles
+    let inhnd = stdin();
+    let mut outhnd = stdout();
+
     // main process loop
     loop {
-        print_opts(&generator);
-        match fetch_input() {
+        print_opts(&generator, &mut outhnd);
+        match fetch_usize_input(&inhnd) {
             Ok(0) => return, // exit the program :)
             Ok(1) => {
                 // TODO: offer a copy to the clipboard
@@ -62,11 +83,11 @@ fn main() -> () {
             Ok(2) => {
                 // collect the new length
                 print!("New Length: ");
-                match stdout().flush() {
+                match outhnd.flush() {
                     Ok(_) => {},
                     Err(e) => panic!("Write error: {e:?}"),
                 };
-                let new = fetch_input();
+                let new = fetch_usize_input(&inhnd);
 
                 // validate: if too small or big, deny change. otherwise, make the change.
                 match new {
@@ -95,6 +116,7 @@ fn main() -> () {
                 flip(x, &mut generator);
 
                 let charsets: [bool; 4] = [generator.upper, generator.lower, generator.num, generator.sym];
+
                 if charsets.iter().all(|&x| x == false) {
                     flip(x, &mut generator);
                     println!("ERROR: Cannot disable all possible charsets!");
@@ -111,7 +133,8 @@ There are two primary rules:
 This project uses the rand crate's cryptographically secure StdRng to generate passwords.
 "
                 );
-                match stdout().flush() {
+
+                match outhnd.flush() {
                     Ok(_) => {},
                     Err(e) => panic!("Write error: {e:?}"),
                 };
