@@ -1,63 +1,16 @@
 mod generator;
+mod io;
 
 use std::{
     env,
-    io::{
-        Stdin,
-        Stdout,
-        Write, 
+    io::{ 
         stdin,
         stdout,
     },
 };
 
 use generator::Generator;
-
-fn print_opts(gen: &Generator, outhnd: &mut Stdout) -> () {
-    let &Generator { length, upper, lower, num, sym, .. } = gen;
-
-    print!("
-Options:
-    1) Generate a new password.
-    2) Set a new length. [ currently: {length} ]
-    3) Toggle uppercase letters. [ currently: {upper} ]
-    4) Toggle lowercase letters. [ currently: {lower} ]
-    5) Toggle numbers [ currently: {num} ]
-    6) Toggle symbols [ currently: {sym} ]
-    7) Print a help menu.
-    0) Exit.
-Select One: "
-    );
-
-    match outhnd.flush() {
-        Ok(_) => {},
-        Err(e) => panic!("Write error: {e:?}"),
-    };
-}
-
-fn fetch_usize_input(inhnd: &Stdin) -> Result<usize, &'static str> {
-    let mut buf = String::new();
-
-    match inhnd.read_line(&mut buf) {
-        Ok(_) => {},
-        Err(e) => eprintln!("Error reading the input: {e:?}"),
-    };
-
-    buf.trim()
-        .parse::<usize>()
-        .map_err(|_| "ERROR: Input must be a number greater than zero! Try again...")
-}
-
-fn fetch_str_input(inhnd: &Stdin) -> String {
-    let mut buf = String::new();
-
-    match inhnd.read_line(&mut buf) {
-        Ok(_) => {},
-        Err(e) => eprintln!("Error reading the input: {e:?}"),
-    };
-
-    buf.trim().to_owned()
-}
+use io::*;
 
 fn main() -> () {
     // enable dev backtraces
@@ -79,14 +32,12 @@ fn main() -> () {
                 // TODO: offer a copy to the clipboard
                 let pass = generator.make();
                 println!("Generated: {}", pass);
+
+
             },
             Ok(2) => {
                 // collect the new length
-                print!("New Length: ");
-                match outhnd.flush() {
-                    Ok(_) => {},
-                    Err(e) => panic!("Write error: {e:?}"),
-                };
+                print_with_flush("New Length: ", &mut outhnd);
                 let new = fetch_usize_input(&inhnd);
 
                 // validate: if too small or big, deny change. otherwise, make the change.
@@ -125,19 +76,15 @@ fn main() -> () {
                 }
             },
             Ok(7) => {
-                print!("
+                print_with_flush("
 This program runs in an infinite loop unless given an exit command.
 There are two primary rules:
     1) At least one charset must be enabled (uppercase, lowercase, numbers, symbols).
     2) The length of the password must be greater than or equal to 8, but no greater than 64.
 This project uses the rand crate's cryptographically secure StdRng to generate passwords.
-"
+", 
+                    &mut outhnd
                 );
-
-                match outhnd.flush() {
-                    Ok(_) => {},
-                    Err(e) => panic!("Write error: {e:?}"),
-                };
             },
             Ok(_) => println!("ERROR: Invalid input! Try again..."),
             Err(e) => println!("{e:?}"),
