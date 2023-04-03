@@ -4,7 +4,7 @@ use std::io::{
     Write,
 };
 
-use crate::Generator;
+use super::generator::Generator;
 
 pub fn print_with_flush(str: &str, outhnd: &mut Stdout) -> () {
     print!("{}", str);
