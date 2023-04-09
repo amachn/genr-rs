@@ -10,7 +10,6 @@ use rand::{
 };
 
 // A basic password generator written in Rust.
-#[derive(Debug)]
 pub struct Generator {
     // The length of the password to be generated.
     pub length: u8,
@@ -31,13 +30,13 @@ pub struct Generator {
     pub updated: bool,
 
     // The current charset (only created/updated on Generator::make()).
-    pub chars: Vec<char>,
+    chars: Vec<char>,
 
     // The PRNG (cryptographically secure) used to generate the passwords.
-    pub rng: StdRng,
+    rng: StdRng,
 
     // Sample range for the PRNG.
-    pub range: Uniform<usize>, 
+    range: Uniform<usize>, 
 }
 
 impl Generator {
@@ -75,6 +74,7 @@ impl Generator {
     fn update(&mut self) -> () {
         if !self.chars.is_empty() { self.chars = Vec::with_capacity(77); } // reset charsets
         
+        // push all selected charsets to self.chars
         if self.upper {
             for c in 'A' as u8 ..= 'Z' as u8 {
                 self.chars.push(c as char);

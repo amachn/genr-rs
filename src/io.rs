@@ -11,7 +11,7 @@ pub fn print_with_flush(str: &str, outhnd: &mut Stdout) -> () {
 
     match outhnd.flush() {
         Ok(_) => {},
-        Err(e) => panic!("Write error: {e:?}"),
+        Err(e) => eprintln!("Write error: {e:?}"),
     };
 }
 
@@ -38,12 +38,12 @@ pub fn fetch_usize_input(inhnd: &Stdin) -> Result<usize, &str> {
 
     match inhnd.read_line(&mut buf) {
         Ok(_) => {},
-        Err(e) => eprintln!("Error reading the input: {e:?}"),
+        Err(e) => eprintln!("Read error: {e:?}"),
     };
 
     buf.trim()
        .parse::<usize>()
-       .map_err(|_| "ERROR: Input must be a number greater than zero! Try again...")
+       .map_err(|_| "ERROR: Input must be a number greater than zero! Try again please.")
 }
 
 pub fn fetch_str_input(inhnd: &Stdin) -> String {
@@ -51,7 +51,7 @@ pub fn fetch_str_input(inhnd: &Stdin) -> String {
 
     match inhnd.read_line(&mut buf) {
         Ok(_) => {},
-        Err(e) => eprintln!("Error reading the input: {e:?}"),
+        Err(e) => eprintln!("Read error: {e:?}"),
     };
 
     buf.trim().to_owned()

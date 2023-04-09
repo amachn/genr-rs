@@ -3,21 +3,15 @@ mod io;
 
 use arboard::Clipboard;
 
-use std::{
-    env,
-    io::{ 
-        stdin,
-        stdout,
-    },
+use std::io::{ 
+    stdin,
+    stdout,
 };
 
 use generator::Generator;
 use io::*;
 
 fn main() -> () {
-    // enable dev backtraces
-    env::set_var("RUST_BACKTRACE", "1"); // TODO: remove when out of dev
-
     // create a new, mutable generator instance
     let mut generator = Generator::new();
 
@@ -33,22 +27,22 @@ fn main() -> () {
         print_opts(&generator, &mut outhnd);
         match fetch_usize_input(&inhnd) {
             Ok(0) => return, // exit the program :)
-            Ok(1) => {
-                // TODO: offer a copy to the clipboard
+            Ok(1) => { // generate a password :)
                 let pass = generator.make();
                 println!("Generated: {}", pass);
 
+                // loop (allowing for typoes) offering a copy to the clipboard
                 loop {
                     print_with_flush("Copy to clipboard? [Y\\n]: ", &mut outhnd);
                     let breakpoint = fetch_str_input(&inhnd);
 
                     match breakpoint.to_lowercase().as_str() {
-                        "y" => {
+                        "y" => { // copy to the clipboard :)
                             clipboard.set_text(pass).unwrap();
                             println!("Done!");
                         },
-                        "n" => {},
-                        _ => {
+                        "n" => {}, // move on :)
+                        _ => { // typo/invalid input, allow loop to continue
                             println!("ERROR: Invalid input! Try again please.");
                             continue;
                         },
@@ -57,8 +51,7 @@ fn main() -> () {
                     break;
                 }
             },
-            Ok(2) => {
-                // collect the new length
+            Ok(2) => { // set a new length :)
                 print_with_flush("New Length: ", &mut outhnd);
                 let new = fetch_usize_input(&inhnd);
 
@@ -75,7 +68,8 @@ fn main() -> () {
                     Err(e) => println!("{e:?}"),
                 }
             },
-            Ok(x) if [3, 4, 5, 6].contains(&x) => { // flip the boolean and verify
+            Ok(x) if [3, 4, 5, 6].contains(&x) => { // toggle a charset :)
+                // flip updates the generator based on the passed input
                 let flip = |num: usize, generator: &mut Generator| -> () {
                     match num {
                         3 => generator.upper = !generator.upper,
@@ -88,16 +82,17 @@ fn main() -> () {
 
                 flip(x, &mut generator);
 
+                // now we make sure at least one charset is still enabled
                 let charsets: [bool; 4] = [generator.upper, generator.lower, generator.num, generator.sym];
 
-                if charsets.iter().all(|&x| x == false) {
+                if charsets.iter().all(|&x| x == false) { // all disabled, undo change and ignore generator.updated
                     flip(x, &mut generator);
                     println!("ERROR: Cannot disable all possible charsets!");
-                } else {
+                } else { // at least one is enabled, flip generator.updated
                     generator.updated = true;
                 }
             },
-            Ok(7) => {
+            Ok(7) => { // print a help menu :)
                 print_with_flush("
 This program runs in an infinite loop unless given an exit command.
 There are two primary rules:
@@ -108,8 +103,8 @@ This project uses the rand crate's cryptographically secure StdRng to generate p
                     &mut outhnd
                 );
             },
-            Ok(_) => println!("ERROR: Invalid input! Try again..."),
-            Err(e) => println!("{e:?}"),
+            Ok(_) => println!("ERROR: Invalid input! Try again..."), // input was <0 or >7, invalid opt, continue loop
+            Err(e) => println!("{e:?}"), // input was not valid usize, continue loop
         };
     }
 }
