@@ -1,6 +1,8 @@
 mod generator;
 mod io;
 
+use arboard::Clipboard;
+
 use std::{
     env,
     io::{ 
@@ -23,6 +25,9 @@ fn main() -> () {
     let inhnd = stdin();
     let mut outhnd = stdout();
 
+    // clipboard
+    let mut clipboard = Clipboard::new().unwrap();
+
     // main process loop
     loop {
         print_opts(&generator, &mut outhnd);
@@ -33,7 +38,24 @@ fn main() -> () {
                 let pass = generator.make();
                 println!("Generated: {}", pass);
 
+                loop {
+                    print_with_flush("Copy to clipboard? [Y\\n]: ", &mut outhnd);
+                    let breakpoint = fetch_str_input(&inhnd);
 
+                    match breakpoint.to_lowercase().as_str() {
+                        "y" => {
+                            clipboard.set_text(pass).unwrap();
+                            println!("Done!");
+                        },
+                        "n" => {},
+                        _ => {
+                            println!("ERROR: Invalid input! Try again please.");
+                            continue;
+                        },
+                    };
+
+                    break;
+                }
             },
             Ok(2) => {
                 // collect the new length
